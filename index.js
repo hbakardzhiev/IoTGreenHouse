@@ -5,25 +5,44 @@ Vue.component('axios-requests', {
         <button @click="getPhoto">Get best performing</button>
         <button @click="getStats">Get stats</button>
     </div>
-    <img id="bestImages" v-for="photo in photos" :src="photo"/>
-    <table id="statsTable" hidden="hidden">
+    <div id="left">
+        <img id="bestImages" v-for="photo in photos" :src="photo"/>
+    </div>
+    <div id="right">
+    <table id="statsTable" style="float: right">
         <thead>
             <th>Timestamp</th>
             <th>Temperature</th>
+            <th>Brightness1</th>
+            <th>Brightness2</th>
+            <th>Brightness3</th>
+            <th>Brightness4</th>
+            <th>MoistureAir</th>
+            <th>MoistureGround</th>
+            <th>Score</th>
         </thead>
         <tbody>
             <tr v-for="el in stats">
-                <td>{{el.timestamp.split("T")[0]}}</td>
+                <td>{{el.timestamp}}</td>
                 <td>{{el.temp}}></td>
+                <td>{{el.brightness1}}</td>
+                <td>{{el.brightness2}}</td>
+                <td>{{el.brightness3}}</td>
+                <td>{{el.brightness4}}</td>
+                <td>{{el.moistureair}}</td>
+                <td>{{el.moistureground}}</td>
+                <td>{{el.score}}</td>
             </tr>
         </tbody>
     </table>
+    </div>
 </div>
 `,
     data(){
       return {
           photos: [],
-          stats: []
+          stats: [],
+          key: []
       }
     },
 methods: {
@@ -31,6 +50,9 @@ methods: {
           let photoData = [];
           axios.get("https://iotgreenhousedata.azurewebsites.net/api/DownloadBest")
               .then((response) => {
+                  let dataStats = [];
+                  dataStats.push(response.data);
+                  this.stats = dataStats[0];
                  response.data.forEach(function(photo){
                      photoData.push("data:image/png;base64," + photo.data);
                  });
@@ -40,8 +62,11 @@ methods: {
           // document.getElementById("bestImages").hidden = false;
       },
      getStats() {
-          let plantStats = [];//https://iotgreenhousedata.azurewebsites.net/api/DownloadSensorData
-          axios.get("https://iotgreenhousedata.azurewebsites.net/api/DownloadSensorData?key="+"3294202")
+          const params = new URLSearchParams(window.location.search);
+          const name = params.get("key");
+
+          let plantStats = [];
+          axios.get("https://iotgreenhousedata.azurewebsites.net/api/DownloadSensorData?key=" + name)
               .then((response) => {
                   plantStats.push(response.data);
                   this.stats = plantStats;
@@ -50,6 +75,7 @@ methods: {
                   console.log(error.valueOf());
           });
 
+          this.photos = [];
           // document.getElementById("bestImages").hidden = true;
      }
 }
